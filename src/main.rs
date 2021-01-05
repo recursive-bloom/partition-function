@@ -110,8 +110,7 @@ fn combination(k: usize, mut n: usize) -> BigUint {
             }
         }
     }
-    let one = BigUint::from(1u32);
-    let mut ret = one.clone();
+    let mut ret = BigUint::from(1u32);
     for i in 0..n {
         assert!(vec_down[i] == 1);
         if vec_up[i] > 1 {
