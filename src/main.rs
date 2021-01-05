@@ -23,7 +23,7 @@ pub fn partion(n: usize, k: usize, mut r: usize) -> BigUint {
         }
         let tmp = k*r;
         if tmp == n {
-            ret = BigUint::from(1u32);;
+            ret = BigUint::from(1u32);
         } else if tmp > n {
             if n == 1 {
                 ret = BigUint::from(k);
@@ -159,16 +159,20 @@ fn test_partion() {
 
     //println!("div == {}", ret1.div(&ret0));
 
-    let input0 = format!("{}", ret0);
-    let dec = BigDecimal::from_str(&input0).unwrap();
+    let input0 = format!("{}.0", ret0);
+    let dec0 = BigDecimal::from_str(&input0).unwrap();
+    println!("dec0 == {}", dec0);
     let float0 = f64::from_str(&input0).unwrap();
-    println!("float == {}", float0);
+    println!("float0 == {}", float0);
 
-    let input1 = format!("{}", ret1);
-    let dec = BigDecimal::from_str(&input1).unwrap();
+    let input1 = format!("{}.0", ret1);
+    let dec1 = BigDecimal::from_str(&input1).unwrap();
+    println!("dec0 == {}", dec1);
     let float1 = f64::from_str(&input1).unwrap();
-    println!("float == {}", float1);
+    println!("float1 == {}", float1);
+
     println!("float0/float1 == {}", float0.div(&float1));
+    println!("dec0/dec1 == {}", dec0.div(&dec1));
 }
 
 
