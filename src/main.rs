@@ -1,6 +1,6 @@
 
 use std::io;
-use num::Integer;
+use num::integer::gcd;
 use num::bigint::BigInt;
 use num::bigint::BigUint;
 use std::ops::{Div, Mul, AddAssign, DivAssign};
@@ -79,46 +79,53 @@ pub fn matrix_init(n: usize, k: usize, r: usize) -> Vec<Vec<Vec<BigUint>>> {
 }
 
 
-fn combination(k: usize, n: usize) -> BigUint {
-    let one = BigUint::from(1u32);
-    let mut ret = one.clone();
+// C(k, n) = k! / n!(k-n)!
+// C(100, 20) = (100!) / ((20!) * (80!)) = 100*99*...81 / 20*19*...*1
+fn combination(k: usize, mut n: usize) -> BigUint {
     assert!(k >= n, "k={}, n={}", k, n);
-    let t = k-n;
-    if(t < n) {
-        ret = combination(k, t);
-    } else {
-        let mut vec_n = Vec::new();
-        let mut vec_r = Vec::new();
-        let mut i = k;
-        let mut j = n;
-        let m = k - n;
-        while i > m {
-            vec_n.push(BigUint::from(i));
-            vec_r.push(BigUint::from(j));
-            i -= 1;
-            j -= 1;
-        }
-        for i in 0..n {
-            if vec_n[i].gt(&one) {
-                for  j in 0..n {
-                    if vec_r[j].gt(&one) {
-                        let gcd = vec_n[i].gcd(&vec_r[j]);
-                        if gcd.gt(&one) {
-                            vec_n[i].div_assign(&gcd);
-                            vec_r[j].div_assign(&gcd);
-                        }
-                    }
+    if n > k-n {
+        n = k-n; // e.g. C(100, 80) = C(100, 20)
+    }
+    let mut vec_up = Vec::new();
+    let mut vec_down = Vec::new();
+    let mut i = k;
+    let mut j = n;
+    while i > k-n {
+        vec_up.push(i);
+        vec_down.push(j);
+        i -= 1;
+        j -= 1;
+    }
+    for i in 0..n {
+        for j in 0..n {
+            if vec_down[j] > 1 {
+                let gcd_ret = gcd(vec_up[i], vec_down[j]);
+                if gcd_ret > 1 {
+                    vec_up[i] /= gcd_ret;
+                    vec_down[j] /= gcd_ret;
                 }
             }
-        }
-        for i in 0..n {
-            assert!(vec_r[i].eq(&one));
-            if vec_n[i].gt(&one) {
-                ret = ret.mul(&vec_n[i]);
+            if vec_up[i] == 1 {
+                break;
             }
         }
     }
+    let one = BigUint::from(1u32);
+    let mut ret = one.clone();
+    for i in 0..n {
+        assert!(vec_down[i] == 1);
+        if vec_up[i] > 1 {
+            ret = ret.mul(vec_up[i]);
+        }
+    }
     ret
+}
+
+#[test]
+fn test_gcd() {
+    use num::integer::gcd;
+    let x = gcd(10, 5);
+    println!("{}", x);
 }
 
 #[test]
