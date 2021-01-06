@@ -8,70 +8,20 @@ use std::ops::{Div, Mul, AddAssign, DivAssign};
 use bigdecimal::BigDecimal;
 use std::str::FromStr;
 
-pub fn pause(n: usize, k: usize, r: usize) {
-    println!("Please Input Something: ");
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).expect("Failed to read line");
-    println!("n = {}, k = {}, r = {}", n, k, r);
-}
-
-pub fn partion(n: usize, k: usize, mut r: usize) -> BigUint {
-    let mut ret = BigUint::from(0u32);
-    if n >= 1 && k >= 1 && r >= 1 {
-        if n < r {
-            r = n;
-        }
-        let tmp = k*r;
-        if tmp == n {
-            ret = BigUint::from(1u32);
-        } else if tmp > n {
-            if n == 1 {
-                ret = BigUint::from(k);
-            } else {
-                for i in  0..= r {
-                    ret.add_assign(partion(n-i, k-1, r));
-                }
-            }
-        }
+pub fn matrix_init(n: usize, mut k: usize, r: usize) -> Vec<Vec<BigUint>> {
+    assert!(n > 0 && k > 0 && r > 0);
+    if k > n {
+        k = n;
     }
-    ret
-}
-
-pub fn partion_with_matrix(n: usize, k: usize, mut r: usize, matrix: &mut Vec<Vec<Vec<BigUint>>>) -> BigUint {
-    let mut ret = BigUint::from(0u32);
-    if n >= 1 && k >= 1 && r >= 1 {
-        if n < r {
-            r = n;
-        }
-        // println!("{} {} {}", n, k, r);
-        if matrix[n-1][k-1][r-1].ne(&BigUint::from(0u32)) {
-            ret = matrix[n-1][k-1][r-1].clone();
-        } else if k*r > n {
-            if n == 1 {
-                ret = BigUint::from(k);
-            } else if k > n {
-                ret = combination(k, k-n).mul(partion_with_matrix(n, n, r, matrix));
-            } else {
-                for i in  0..= r {
-                    ret.add_assign(partion_with_matrix(n-i, k-1, r, matrix));
-                }
-            }
-            matrix[n-1][k-1][r-1] = ret.clone();
-        }
-    }
-    ret
-}
-
-
-pub fn matrix_init(n: usize, k: usize, r: usize) -> Vec<Vec<Vec<BigUint>>> {
-    let mut matrix = vec![vec![vec![BigUint::from(0u32); r]; k]; n];
-    for i_n in 0..n {
-        for i_k in 0..k {
-            for i_r in 0..r {
-                if (i_k+1) * (i_r+1) == (i_n+1) {
-                    matrix[i_n][i_k][i_r] = BigUint::from(1u32);
-                    // println!("===={}, {}, {}, {}", i_n, i_k, i_r, mt[i_n][i_k][i_r]);
-                }
+    let mut matrix = vec![vec![BigUint::from(0u32); k+1]; n+1];
+    for i_n in 1..=n {
+        for i_k in 1..=k {
+            if i_n == 1 && i_k >= 1 {
+                matrix[i_n][i_k] = BigUint::from(i_k);
+            } else if i_k == 1 && i_n <= r {
+                matrix[i_n][i_k] = BigUint::from(1u32);
+            } else if i_n == r*i_k {
+                matrix[i_n][i_k] = BigUint::from(1u32);
             }
         }
     }
@@ -79,8 +29,26 @@ pub fn matrix_init(n: usize, k: usize, r: usize) -> Vec<Vec<Vec<BigUint>>> {
 }
 
 
-// C(k, n) = k! / n!(k-n)!
-// C(100, 20) = (100!) / ((20!) * (80!)) = 100*99*...81 / 20*19*...*1
+pub fn partition_matrix(n: usize, k: usize, r: usize, matrix: &mut Vec<Vec<BigUint>>) -> BigUint {
+    assert!(n > 0 && k > 0 && r > 0, "n = {}, k = {}, r = {}", n, k, r);
+    let mut ret = BigUint::from(0u32);
+    if k > n {
+        ret = combination(k, n).mul(partition_matrix(n, n, r, matrix));
+    } else if matrix[n][k].ne(&BigUint::from(0u32)) {
+        ret = matrix[n][k].clone();
+    } else if n < k*r {
+        let volume_next = (k-1)*r;
+        for i in 0..=r {
+            if n > i && (n-i) <= volume_next {
+                ret.add_assign(partition_matrix(n-i, k-1, r, matrix));
+            }
+        }
+        matrix[n][k] = ret.clone();
+        println!("matrix[{}][{}] == {}", n, k, matrix[n][k]);
+    }
+    ret
+}
+
 fn combination(k: usize, mut n: usize) -> BigUint {
     assert!(k >= n, "k={}, n={}", k, n);
     if n > k-n {
@@ -147,14 +115,14 @@ fn test_partion() {
     let r = 5;
     //let g = 10;
     let mut matrix = matrix_init(n, k, r);
-    let ret0 = partion_with_matrix(n, k, r, &mut matrix);
+    let ret0 = partition_matrix(n, k, r, &mut matrix);
     println!("r0 == {}", ret0);
 
     let n = 100;
     let k = 100;
     let r = 10;
     let mut matrix = matrix_init(n, k, r);
-    let ret1 = partion_with_matrix(n, k, r, &mut matrix);
+    let ret1 = partition_matrix(n, k, r, &mut matrix);
     println!("r1 == {}", ret1);
 
     //println!("div == {}", ret1.div(&ret0));
@@ -175,14 +143,14 @@ fn test_partion() {
     println!("dec0/dec1 == {}", dec0.div(&dec1));
 }
 
-
 fn main() {
-    let n = 500;
+    let n = 20;
     let k = 100;
-    let r = 10;
+    let r = 5;
     let mut matrix = matrix_init(n, k, r);
-    let ret = partion_with_matrix(n, k, r, &mut matrix);
+    let ret = partition_matrix(n, k, r, &mut matrix);
     println!("Count is  {}", ret);
 }
+
 
 
