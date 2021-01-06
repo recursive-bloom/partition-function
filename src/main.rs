@@ -109,7 +109,7 @@ fn test_combination() {
 }
 
 #[test]
-fn test_partion() {
+fn test_partition() {
     let n = 100;
     let k = 100;
     let r = 5;
