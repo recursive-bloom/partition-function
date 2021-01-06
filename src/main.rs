@@ -28,7 +28,6 @@ pub fn matrix_init(n: usize, mut k: usize, r: usize) -> Vec<Vec<BigUint>> {
     matrix
 }
 
-
 pub fn partition_matrix(n: usize, k: usize, r: usize, matrix: &mut Vec<Vec<BigUint>>) -> BigUint {
     assert!(n > 0 && k > 0 && r > 0, "n = {}, k = {}, r = {}", n, k, r);
     let mut ret = BigUint::from(0u32);
@@ -110,7 +109,7 @@ fn test_combination() {
 
 #[test]
 fn test_partition() {
-    let n = 100;
+    let n = 35;
     let k = 100;
     let r = 5;
     //let g = 10;
@@ -118,7 +117,7 @@ fn test_partition() {
     let ret0 = partition_matrix(n, k, r, &mut matrix);
     println!("r0 == {}", ret0);
 
-    let n = 100;
+    let n = 35;
     let k = 100;
     let r = 10;
     let mut matrix = matrix_init(n, k, r);
@@ -151,6 +150,5 @@ fn main() {
     let ret = partition_matrix(n, k, r, &mut matrix);
     println!("Count is  {}", ret);
 }
-
 
 
