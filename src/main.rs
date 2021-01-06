@@ -33,7 +33,7 @@ pub fn partition_matrix(n: usize, k: usize, r: usize, matrix: &mut Vec<Vec<BigUi
     let mut ret = BigUint::from(0u32);
     if k > n {
         ret = combination(k, n).mul(partition_matrix(n, n, r, matrix));
-    } else if matrix[n][k].ne(&BigUint::from(0u32)) {
+    } else if matrix[n][k].ne(&ret) {  // assert!(ret.eq(BigUint::from(0u32)));
         ret = matrix[n][k].clone();
     } else if n < k*r {
         let volume_next = (k-1)*r;
@@ -48,6 +48,8 @@ pub fn partition_matrix(n: usize, k: usize, r: usize, matrix: &mut Vec<Vec<BigUi
     ret
 }
 
+// C(k, n) = k! / n!(k-n)!
+// C(100, 20) = (100!) / ((20!) * (80!)) = 100*99*...81 / 20*19*...*1
 fn combination(k: usize, mut n: usize) -> BigUint {
     assert!(k >= n, "k={}, n={}", k, n);
     if n > k-n {
