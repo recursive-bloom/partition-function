@@ -16,12 +16,12 @@ pub fn matrix_init(n: usize, mut k: usize, r: usize) -> Vec<Vec<BigUint>> {
     let mut matrix = vec![vec![BigUint::from(0u32); k+1]; n+1];
     for i_n in 1..=n {
         for i_k in 1..=k {
-            if i_n == 1 && i_k >= 1 {
-                matrix[i_n][i_k] = BigUint::from(i_k);
+            if i_n == r*i_k {
+                matrix[i_n][i_k] = BigUint::from(1u32);
             } else if i_k == 1 && i_n <= r {
                 matrix[i_n][i_k] = BigUint::from(1u32);
-            } else if i_n == r*i_k {
-                matrix[i_n][i_k] = BigUint::from(1u32);
+            } else if i_n == 1 {
+                matrix[i_n][i_k] = BigUint::from(i_k);
             }
         }
     }
