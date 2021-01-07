@@ -111,22 +111,19 @@ fn test_combination() {
 
 #[test]
 fn test_partition() {
-    let n = 35;
+    let n = 34;
     let k = 100;
     let r = 5;
     //let g = 10;
     let mut matrix = matrix_init(n, k, r);
     let ret0 = partition_matrix(n, k, r, &mut matrix);
-    println!("r0 == {}", ret0);
 
-    let n = 35;
-    let k = 100;
     let r = 10;
     let mut matrix = matrix_init(n, k, r);
     let ret1 = partition_matrix(n, k, r, &mut matrix);
-    println!("r1 == {}", ret1);
 
-    //println!("div == {}", ret1.div(&ret0));
+    println!("ret0 == {}", ret0);
+    println!("ret1 == {}", ret1);
 
     let input0 = format!("{}.0", ret0);
     let dec0 = BigDecimal::from_str(&input0).unwrap();
@@ -140,8 +137,8 @@ fn test_partition() {
     let float1 = f64::from_str(&input1).unwrap();
     println!("float1 == {}", float1);
 
-    println!("float0/float1 == {}", float0.div(&float1));
-    println!("dec0/dec1 == {}", dec0.div(&dec1));
+    println!("float0 / float1 == {}", float0.div(&float1));
+    println!("dec0 / dec1 == {}", dec0.div(&dec1));
 }
 
 fn main() {
