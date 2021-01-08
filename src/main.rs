@@ -3,7 +3,7 @@ use std::io;
 use num::integer::gcd;
 use num::bigint::BigInt;
 use num::bigint::BigUint;
-use std::ops::{Div, Mul, AddAssign, DivAssign};
+use std::ops::{Div, Mul, AddAssign, DivAssign, Sub};
 
 use bigdecimal::BigDecimal;
 use std::str::FromStr;
@@ -137,8 +137,12 @@ fn test_partition() {
     let float1 = f64::from_str(&input1).unwrap();
     println!("float1 == {}", float1);
 
+    let p = dec0.div(&dec1);
     println!("float0 / float1 == {}", float0.div(&float1));
-    println!("dec0 / dec1 == {}", dec0.div(&dec1));
+    println!("dec0 / dec1 == {}", p);
+
+    let one = BigDecimal::from_str("1.0").unwrap();
+    println!("dec0 / dec1 == {}", one.sub(&p));
 }
 
 fn main() {
