@@ -16,10 +16,10 @@ pub fn matrix_init(n: usize, mut k: usize, r: usize) -> Vec<Vec<BigUint>> {
     let mut matrix = vec![vec![BigUint::from(0u32); k+1]; n+1];
     for i_n in 1..=n {
         for i_k in 1..=k {
-            if i_n == r*i_k {
+            if i_k > 1 && i_n == r*i_k {
                 matrix[i_n][i_k] = BigUint::from(1u32);
-                for j in 0..i_k-1 {
-                    matrix[i_n][i_k].mul_assign(combination(i_n-j*r, r));
+                for j in 2..=i_k {
+                    matrix[i_n][i_k].mul_assign(combination(j*r, r));
                 }
             } else if i_k == 1 && i_n <= r {
                 matrix[i_n][i_k] = BigUint::from(1u32);
@@ -114,7 +114,7 @@ fn test_combination() {
 
 #[test]
 fn test_partition() {
-    let n = 100;
+    let n = 50;
     let k = 100;
     let r = 5;
     //let g = 10;
