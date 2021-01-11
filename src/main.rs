@@ -3,7 +3,7 @@ use std::io;
 use num::integer::gcd;
 use num::bigint::BigInt;
 use num::bigint::BigUint;
-use std::ops::{Div, Mul, AddAssign, DivAssign, Sub};
+use std::ops::{Div, Mul, AddAssign, DivAssign, Sub, MulAssign};
 
 use bigdecimal::BigDecimal;
 use std::str::FromStr;
@@ -18,6 +18,9 @@ pub fn matrix_init(n: usize, mut k: usize, r: usize) -> Vec<Vec<BigUint>> {
         for i_k in 1..=k {
             if i_n == r*i_k {
                 matrix[i_n][i_k] = BigUint::from(1u32);
+                for j in 0..i_k-1 {
+                    matrix[i_n][i_k].mul_assign(combination(i_n-j*r, r));
+                }
             } else if i_k == 1 && i_n <= r {
                 matrix[i_n][i_k] = BigUint::from(1u32);
             } else if i_n == 1 {
@@ -39,7 +42,7 @@ pub fn partition_matrix(n: usize, k: usize, r: usize, matrix: &mut Vec<Vec<BigUi
         let volume_next = (k-1)*r;
         for i in 0..=r {
             if n > i && (n-i) <= volume_next {
-                ret.add_assign(partition_matrix(n-i, k-1, r, matrix));
+                ret.add_assign(combination(n, i).mul(partition_matrix(n-i, k-1, r, matrix)));
             }
         }
         matrix[n][k] = ret.clone();
@@ -111,7 +114,7 @@ fn test_combination() {
 
 #[test]
 fn test_partition() {
-    let n = 34;
+    let n = 100;
     let k = 100;
     let r = 5;
     //let g = 10;
@@ -146,12 +149,13 @@ fn test_partition() {
 }
 
 fn main() {
-    let n = 20;
+    let n = 100;
     let k = 100;
     let r = 5;
     let mut matrix = matrix_init(n, k, r);
-    let ret = partition_matrix(n, k, r, &mut matrix);
-    println!("Count is  {}", ret);
+    println!("Count is  {:?}", matrix);
+    //let ret = partition_matrix(n, k, r, &mut matrix);
+    //println!("Count is  {}", ret);
 }
 
 
