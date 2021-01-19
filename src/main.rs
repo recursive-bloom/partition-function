@@ -8,51 +8,56 @@ use std::ops::{Div, Mul, AddAssign, DivAssign, Sub, MulAssign};
 use bigdecimal::BigDecimal;
 use std::str::FromStr;
 
-pub fn matrix_init(n: usize, mut k: usize, r: usize) -> Vec<Vec<BigUint>> {
-    assert!(n > 0 && k > 0 && r > 0);
-    if k > n {
-        k = n;
-    }
-    let mut matrix = vec![vec![BigUint::from(0u32); k+1]; n+1];
-    for i_n in 1..=n {
-        for i_k in 1..=k {
-            if i_k > 1 && i_n == r*i_k {
-                matrix[i_n][i_k] = BigUint::from(1u32);
-                for j in 2..=i_k {
-                    matrix[i_n][i_k].mul_assign(combination(j*r, r));
+pub fn matrix_init(n: usize, m: usize, k: usize, t: usize, r: usize) -> Vec<Vec<Vec<BigUint>>> {
+    // assert!(n > 0 && m > 0 && k > 0);
+    let mut matrix = vec![vec![vec![BigUint::from(0u32); k+1]; m+1]; n+1];
+    for i_k in 1..=k {
+        let volume = i_k*t;
+        for i_n in 0..=n {
+            for i_m in 0..=m {
+                if i_n+i_m == volume && i_n <= r {
+                    let mut ret = BigUint::from(1u32);
+                    for j in 2..=i_k {
+                        ret.mul_assign(combination(j*t, t));
+                    }
+                    matrix[i_n][i_m][i_k] = ret.clone();
+                    // println!("matrix[{}][{}][{}] is {}", i_n, i_m, i_k, matrix[i_n][i_m][i_k]);
                 }
-            } else if i_k == 1 && i_n <= r {
-                matrix[i_n][i_k] = BigUint::from(1u32);
-            } else if i_n == 1 {
-                matrix[i_n][i_k] = BigUint::from(i_k);
             }
         }
     }
+    // println!("matrix is {:?}", matrix);
     matrix
 }
 
-pub fn partition_matrix(n: usize, k: usize, r: usize, matrix: &mut Vec<Vec<BigUint>>) -> BigUint {
-    assert!(n > 0 && k > 0 && r > 0, "n = {}, k = {}, r = {}", n, k, r);
+pub fn partition(
+    n: usize, m: usize, k: usize, t: usize, r: usize,
+    matrix: &mut Vec<Vec<Vec<BigUint>>>, sum: &mut BigUint, hited: &mut BigUint
+) -> BigUint {
+    // println!("#### Begin #### n = {}, m = {}, k = {}, t = {}, r = {}", n, m, k, t, r);
+    assert!(k > 0 && (n > 0 || m > 0));
+    assert!(n+m == k*t && r <= t);
+    let one = BigUint::from(1u32);
+    sum.add_assign(&one);
     let mut ret = BigUint::from(0u32);
-    if k > n {
-        ret = combination(k, n).mul(partition_matrix(n, n, r, matrix));
-    } else if matrix[n][k].ne(&ret) {  // assert!(ret.eq(BigUint::from(0u32)));
-        ret = matrix[n][k].clone();
-    } else if n < k*r {
-        let volume_next = (k-1)*r;
+    if matrix[n][m][k].ne(&ret) {
+        hited.add_assign(&one);
+        ret = matrix[n][m][k].clone();
+    } else {
         for i in 0..=r {
-            if n > i && (n-i) <= volume_next {
-                ret.add_assign(combination(n, i).mul(partition_matrix(n-i, k-1, r, matrix)));
+            if n >= i && m >= t-i && r*(k-1) >= n-i {
+                let factor = combination(n, i).mul(combination(m, t-i));
+                // println!("Recall** n = {}, i = {}, m = {}, j = {}, factor = {}", n, i, m, t-i, factor);
+                ret.add_assign(factor.mul(partition(n-i, m+i-t, k-1, t, r, matrix, sum, hited)));
             }
         }
-        matrix[n][k] = ret.clone();
-        println!("matrix[{}][{}] == {}", n, k, matrix[n][k]);
+        matrix[n][m][k] = ret.clone();
     }
     ret
 }
 
 // C(k, n) = k! / n!(k-n)!
-// C(100, 20) = (100!) / ((20!) * (80!)) = 100*99*...81 / 20*19*...*1
+// C(100, 20) = (100!) / ((20!) * (80!)) = 100*99*...*82*81 / 20*19*...*2*1
 fn combination(k: usize, mut n: usize) -> BigUint {
     assert!(k >= n, "k={}, n={}", k, n);
     if n > k-n {
@@ -113,49 +118,46 @@ fn test_combination() {
 }
 
 #[test]
-fn test_partition() {
-    let n = 50;
-    let k = 100;
-    let r = 5;
-    //let g = 10;
-    let mut matrix = matrix_init(n, k, r);
-    let ret0 = partition_matrix(n, k, r, &mut matrix);
-
-    let r = 10;
-    let mut matrix = matrix_init(n, k, r);
-    let ret1 = partition_matrix(n, k, r, &mut matrix);
-
-    println!("ret0 == {}", ret0);
-    println!("ret1 == {}", ret1);
-
-    let input0 = format!("{}.0", ret0);
-    let dec0 = BigDecimal::from_str(&input0).unwrap();
-    println!("dec0 == {}", dec0);
-    let float0 = f64::from_str(&input0).unwrap();
-    println!("float0 == {}", float0);
-
-    let input1 = format!("{}.0", ret1);
-    let dec1 = BigDecimal::from_str(&input1).unwrap();
-    println!("dec0 == {}", dec1);
-    let float1 = f64::from_str(&input1).unwrap();
-    println!("float1 == {}", float1);
-
-    let p = dec0.div(&dec1);
-    println!("float0 / float1 == {}", float0.div(&float1));
-    println!("dec0 / dec1 == {}", p);
-
-    let one = BigDecimal::from_str("1.0").unwrap();
-    println!("dec0 / dec1 == {}", one.sub(&p));
+fn test_combination_easy() {
+    let ret = combination(6, 3);
+    println!("{}", ret);
 }
+
 
 fn main() {
-    let n = 100;
+    let N = 333;
+    let mut m;
     let k = 100;
+    let t = 10;
     let r = 5;
-    let mut matrix = matrix_init(n, k, r);
-    println!("Count is  {:?}", matrix);
-    //let ret = partition_matrix(n, k, r, &mut matrix);
-    //println!("Count is  {}", ret);
-}
+    for n in 0..=N {
+        let mut sum = BigUint::from(0u32);
+        let mut hited = BigUint::from(0u32);
+        m = 1000 - n;
+        let mut matrix = matrix_init(n, m, k, t, r);
+        let ret = partition(n, m, k, t, r, &mut matrix, &mut sum, &mut hited);
+        // println!("Count is  {}", ret);
 
+        let mut total = BigUint::from(1u32);;
+        for i in 2..=k {
+            total.mul_assign(combination(i * t, t));
+        }
+        // println!("total is  {}", total);
+
+        let tmp = format!("{}", ret);
+        let up = BigDecimal::from_str(&tmp).unwrap();
+        // println!("up == {}", up);
+
+        let tmp = format!("{}", total);
+        let down = BigDecimal::from_str(&tmp).unwrap();
+        // println!("down == {}", down);
+
+        let p = up.div(&down);
+        let one = BigDecimal::from_str("1").unwrap();
+        println!("#### n = {}", n);
+        println!("==== total called {}, hited {}", sum, hited);
+        println!("OK, {}", p);
+        println!("ERR, {}", one.sub(&p));
+    }
+}
 
